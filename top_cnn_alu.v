@@ -47,7 +47,6 @@ control_unit CU (
     .write_en  (write_en),
     .bus_sel   (bus_sel),
     .alu_sel   (alu_sel_cu),
-    .Address   ()           // leave unconnected or connect as needed
 );
 
 // Instantiate data path
