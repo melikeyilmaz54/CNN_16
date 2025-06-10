@@ -1,53 +1,90 @@
-module top_cnn_alu (
-    input clk,
-    input mem_write,                       // RAM yazma enable
-    input alu_enable,                      // ALU/FPU enable
-    input [3:0] alu_op,                    // ALU/FPU operasyon kodu
-    input [11:0] ram_addr_a, ram_addr_b,   // RAM adresleri
-    input [15:0] ram_data_in,              // RAM'e yazılacak veri
-    output [15:0] ram_data_out,            // RAM'den okunan veri
-    output [15:0] alu_result,              // ALU/FPU sonucu
-    output alu_zero, alu_carry, alu_fp_error // ALU/FPU bayrakları
+`timescale 1ns / 1ps
+
+module top_cnn_alu(
+    input  wire        clk,
+    input  wire        reset,
+    input  wire        mem_ready,
+    input  wire [15:0] from_memory,
+    input  wire        fp_mul_en,
+
+    output wire [15:0] to_memory,
+    output wire [11:0] address,
+
+    // Expose internal register values
+    output wire [15:0] IR_Value,
+    output wire [15:0] AC_Value,
+    output wire [11:0] PC_Value,
+    output wire  [7:0] XREG_Value,
+    output wire  [7:0] YREG_Value,
+    output wire [15:0] FPLOAD_Value,
+    output wire [15:0] FPMUL_Value,
+    output wire [8:0]  state
 );
 
-    // RAM instance'ı
-    wire [15:0] ram_data_a, ram_data_b;
+// Control signals from control_unit
+wire       AR_Load, DR_Load, AC_Load, IR_Load;
+wire       PC_Inc, PC_Load, DR_Inc, write_en;
+wire [3:0] bus_sel;
+wire [1:0] alu_sel_cu;
 
-    cnn16_ram #(
-        .DATA_WIDTH(16),
-        .ADDR_WIDTH(12)
-    ) ram_inst (
-        .clk(clk),
-        .mem_write(mem_write),
-        .address(ram_addr_a),
-        .data_in(ram_data_in),
-        .data_out(ram_data_a)
-    );
+// Unused load signals tied low
+wire        zero_load = 1'b0;
 
-    // ALU/FPU instance'ı
-    alu_fpu_16bit alu_fpu_inst (
-        .clk(clk),
-        .op(alu_op),
-        .a(ram_data_a),
-        .b(ram_data_b),
-        .result(alu_result),
-        .zero(alu_zero),
-        .carry(alu_carry),
-        .fp_error(alu_fp_error)
-    );
+// Instantiate control unit
+control_unit CU (
+    .clk       (clk),
+    .reset     (reset),
+    .IR        (IR_Value),
+    .mem_ready (mem_ready),
+    .state     (state),
+    .AR_Load   (AR_Load),
+    .DR_Load   (DR_Load),
+    .AC_Load   (AC_Load),
+    .IR_Load   (IR_Load),
+    .PC_Inc    (PC_Inc),
+    .PC_Load   (PC_Load),
+    .DR_Inc    (DR_Inc),
+    .write_en  (write_en),
+    .bus_sel   (bus_sel),
+    .alu_sel   (alu_sel_cu),
+    .Address   ()           // leave unconnected or connect as needed
+);
 
-    // İkinci RAM portu okuma (b için)
-    cnn16_ram #(
-        .DATA_WIDTH(16),
-        .ADDR_WIDTH(12)
-    ) ram_inst_b (
-        .clk(clk),
-        .mem_write(1'b0), // Sadece okuma
-        .address(ram_addr_b),
-        .data_in(16'b0),
-        .data_out(ram_data_b)
-    );
-
-    assign ram_data_out = ram_data_a;
+// Instantiate data path
+cnn16_data_path DP (
+    .clk        (clk),
+    .rst        (reset),
+    .AC_Load    (AC_Load),
+    .DR_Load    (DR_Load),
+    .TR_Load    (zero_load),
+    .IR_Load    (IR_Load),
+    .VREG_Load  (zero_load),
+    .KREG_Load  (zero_load),
+    .GREG_Load  (zero_load),
+    .OREG_Load  (zero_load),
+    .INPR_Load  (zero_load),
+    .OUTR_Load  (zero_load),
+    .PC_Load    (PC_Load),
+    .AR_Load    (AR_Load),
+    .XREG_Load  (zero_load),
+    .YREG_Load  (zero_load),
+    .FPLOAD_Load(zero_load),
+    .FPMUL_Load (zero_load),
+    .PC_Inc     (PC_Inc),
+    .AR_Inc     (zero_load),
+    .alu_sel    ({2'b00, alu_sel_cu}),
+    .fp_mul_en  (fp_mul_en),
+    .bus_sel    (bus_sel),
+    .from_memory(from_memory),
+    .to_memory  (to_memory),
+    .address    (address),
+    .IR_Value   (IR_Value),
+    .AC_Value   (AC_Value),
+    .PC_Value   (PC_Value),
+    .XREG_Value (XREG_Value),
+    .YREG_Value (YREG_Value),
+    .FPLOAD_Value  (FPLOAD_Value),
+    .FPMUL_Value   (FPMUL_Value)
+);
 
 endmodule
