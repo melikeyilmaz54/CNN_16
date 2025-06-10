@@ -53,6 +53,7 @@ module cnn16_data_path (
                 (bus_sel == 4'b1011) ? INPR :
                 (bus_sel == 4'b1100) ? FPLOAD :
                 (bus_sel == 4'b1101) ? FPMUL :
+                (bus_sel == 4'b1110) ? IR :  // IR bus'tan okunabilir
                 OUTR;
 
     // Çıkış bağlantıları
@@ -84,7 +85,7 @@ module cnn16_data_path (
         else if (TR_Load) TR <= bus;
     end
 
-    // IR Register (16-bit)
+    // IR Register (16-bit) - SADECE BUS'TAN YÜKLENİYOR
     always @(posedge clk) begin
         if (rst) IR <= 16'b0;
         else if (IR_Load) IR <= bus;
