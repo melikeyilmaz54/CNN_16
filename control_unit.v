@@ -706,6 +706,7 @@ localparam reg [7:0]
     end
 
     localparam IR_SEL = 5'b01110;  // bus_sel == 01110 → IR
+    localparam ZERO_SELL = 5'd0;
     localparam [3:0] 
         ALU_ADD = 4'b0000,
         ALU_SUB = 4'b0001;
@@ -718,7 +719,7 @@ localparam reg [7:0]
         PC_Load=1'b0;
         AC_Load=1'b0;
         DR_Load=1'b0;
-        bus_sel=5'b00000;
+        bus_sel=ZERO_SELL;
         alu_sel=4'b0000;
         write_en=1'b0;
         PC_Inc=1'b0;
@@ -760,7 +761,7 @@ localparam reg [7:0]
 
             S_LDA_6: begin
                 // AC ← DR
-                bus_sel = 5'b00000; // DR → bus
+                bus_sel = ZERO_SELL; // DR → bus
                 AC_Load = 1'b1;
             end
 
@@ -783,7 +784,7 @@ localparam reg [7:0]
             
             S_STA_6: begin
                 // M[AR] ← DR
-                bus_sel   = 5'b00000; // DR → bus
+                bus_sel   = ZERO_SELL; // DR → bus
                 write_en  = 1'b1;    // memory write
             end
             
@@ -806,7 +807,7 @@ localparam reg [7:0]
             
             S_LDG_6: begin
                 // AC ← DR
-                bus_sel = 5'b00000;  // DR → bus
+                bus_sel = ZERO_SELL;  // DR → bus
                 AC_Load = 1'b1;
             end
             
@@ -829,7 +830,7 @@ localparam reg [7:0]
             
             S_LDK_6: begin
                 // AC ← DR
-                bus_sel  = 5'b00000;  // DR → bus
+                bus_sel  = ZERO_SELL;  // DR → bus
                 AC_Load  = 1'b1;
             end
             
@@ -852,7 +853,7 @@ localparam reg [7:0]
             
             S_LDO_6: begin
                 // AC ← DR
-                bus_sel  = 5'b00000;  // DR → bus
+                bus_sel  = ZERO_SELL;  // DR → bus
                 AC_Load  = 1'b1;
             end
             
@@ -875,7 +876,7 @@ localparam reg [7:0]
             
             S_STO_6: begin
                 // M[AR] ← DR (OUTPUT bölgesine yazma)
-                bus_sel    = 5'b00000; // DR → bus
+                bus_sel    = ZERO_SELL; // DR → bus
                 write_en   = 1'b1;    // memory write
             end
             
@@ -898,7 +899,7 @@ localparam reg [7:0]
 
             S_ADD_6: begin
                 // TR ← DR
-                bus_sel   = 5'b00000;  // DR → bus
+                bus_sel   = ZERO_SELL;  // DR → bus
                 TR_Load   = 1'b1;
             end
 
@@ -927,7 +928,7 @@ localparam reg [7:0]
             
             S_SUB_6: begin
                 // TR ← DR
-                bus_sel  = 5'b00000;  // DR → bus
+                bus_sel  = ZERO_SELL;  // DR → bus
                 TR_Load  = 1'b1;
             end
             
@@ -956,7 +957,7 @@ localparam reg [7:0]
 
               S_MUL_6: begin
                   // TR ← DR
-                  bus_sel  = 5'b00000;  // DR → bus
+                  bus_sel  = ZERO_SELL;  // DR → bus
                   TR_Load  = 1'b1;
               end
 
@@ -1054,7 +1055,7 @@ localparam reg [7:0]
             
             S_INC_6: begin
                 // TR ← DR
-                bus_sel  = 5'b00000;  // DR → bus
+                bus_sel  = ZERO_SELL;  // DR → bus
                 TR_Load  = 1'b1;
             end
             
@@ -1066,7 +1067,7 @@ localparam reg [7:0]
             
             S_INC_8: begin
                 // M[AR] ← DR
-                bus_sel   = 5'b00000;  // DR → bus
+                bus_sel   = ZERO_SELL;  // DR → bus
                 write_en  = 1'b1;
             end
             
@@ -1088,7 +1089,7 @@ localparam reg [7:0]
             
             S_DEC_6: begin
                 // TR ← DR
-                bus_sel  = 5'b00000;      // DR → bus
+                bus_sel  = ZERO_SELL;      // DR → bus
                 TR_Load  = 1'b1;
             end
             
@@ -1100,7 +1101,7 @@ localparam reg [7:0]
             
             S_DEC_8: begin
                 // M[AR] ← DR
-                bus_sel   = 5'b00000;      // DR → bus
+                bus_sel   = ZERO_SELL;      // DR → bus
                 write_en  = 1'b1;         // memory write
             end
             
@@ -1251,7 +1252,7 @@ localparam reg [7:0]
             end
             
             S_CONV_24: begin
-                bus_sel   = 5'b00000; // DR
+                bus_sel   = ZERO_SELL; // DR
                 write_en  = 1'b1;
             end
             
@@ -1303,7 +1304,7 @@ localparam reg [7:0]
             
             S_FPMUL_6: begin
                 // TR ← DR
-                bus_sel  = 5'b00000;  // DR → bus
+                bus_sel  = ZERO_SELL;  // DR → bus
                 TR_Load  = 1'b1;
             end
             
@@ -1366,7 +1367,7 @@ localparam reg [7:0]
             
             S_IN_6: begin
                 // AC ← DR
-                bus_sel  = 5'b00000;    // DR → bus
+                bus_sel  = ZERO_SELL;    // DR → bus
                 AC_Load  = 1'b1;
             end
             
