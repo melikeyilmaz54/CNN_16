@@ -162,7 +162,7 @@ module cnn16_data_path (
     end
 
     // 16-bit ALU birimi
-    alu_16bit alu_unit (
+    alu_fpu_16bit alu_unit (
         .op(alu_sel),
         .a(AC),
         .b(DR),
