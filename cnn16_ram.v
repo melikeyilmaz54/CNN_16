@@ -7,22 +7,20 @@ module cnn16_ram #(
     input  [ADDR_WIDTH-1:0] address,  // Bellek adresi
     input  [DATA_WIDTH-1:0] data_in,  // Yazılacak veri
     output [DATA_WIDTH-1:0] data_out  // Okunan veri
-
 );
 
     // RAM dizisi
-    reg [DATA_WIDTH-1:0] bellek [0:(1<<ADDR_WIDTH)-1];
-    reg [DATA_WIDTH-1:0] data;
+    reg [DATA_WIDTH-1:0] memory [0:(1<<ADDR_WIDTH)-1];
+    reg [DATA_WIDTH-1:0] data_reg;
 
     always @(posedge clk) begin
-        if (we==1'b1) begin 
-            bellek[addr] <= din;  // Yazma islemi
+        if (mem_write) begin
+            memory[address] <= data_in;  // Yazma işlemi
+        end else begin
+            data_reg <= memory[address]; // Okuma işlemi
         end
-        else begin 
-            data <= bellek[addr];  // Okuma islemi
-         end
     end
-    
-    assign dout=data;
+
+    assign data_out = data_reg;
 
 endmodule
