@@ -33,19 +33,19 @@ module cnn16_data_path (
     wire [15:0] alu_result;
 
     // BUS seçici (16-bit uyumlu)
-    assign bus = (bus_sel == 5'b0000) ? DR :
-                (bus_sel == 5'b0001) ? AC :
-                (bus_sel == 5'b0010) ? TR :
-                (bus_sel == 5'b0011) ? {4'b0, PC} :    // 12-bit PC -> 16-bit
-                (bus_sel == 5'b0100) ? from_memory :
-                (bus_sel == 5'b0101) ? {8'b0, XREG} :  // 8-bit XREG -> 16-bit
-                (bus_sel == 5'b0110) ? {8'b0, YREG} :  // 8-bit YREG -> 16-bit
-                (bus_sel == 5'b0111) ? VREG :
-                (bus_sel == 5'b1000) ? KREG :
-                (bus_sel == 5'b1001) ? GREG :
-                (bus_sel == 5'b1010) ? OREG :
-                (bus_sel == 5'b1011) ? INPR :
-                (bus_sel == 5'b1110) ? IR :  // IR bus'tan okunabilir
+    assign bus = (bus_sel == 5'b00000) ? DR :
+                (bus_sel == 5'b00001) ? AC :
+                (bus_sel == 5'b00010) ? TR :
+                (bus_sel == 5'b00011) ? {4'b0, PC} :    // 12-bit PC -> 16-bit
+                (bus_sel == 5'b00100) ? from_memory :
+                (bus_sel == 5'b00101) ? {8'b0, XREG} :  // 8-bit XREG -> 16-bit
+                (bus_sel == 5'b00110) ? {8'b0, YREG} :  // 8-bit YREG -> 16-bit
+                (bus_sel == 5'b00111) ? VREG :
+                (bus_sel == 5'b01000) ? KREG :
+                (bus_sel == 5'b01001) ? GREG :
+                (bus_sel == 5'b01010) ? OREG :
+                (bus_sel == 5'b01011) ? INPR :
+                (bus_sel == 5'b01110) ? IR :  // IR bus'tan okunabilir
                 OUTR;
 
     // Çıkış bağlantıları
