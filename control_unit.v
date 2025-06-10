@@ -8,8 +8,7 @@ module control_unit(
     output reg [8:0] state,       // 9-bit state
     output reg AR_Load, DR_Load, AC_Load, IR_Load, PC_Inc, PC_Load, DR_Inc, write_en,
     output reg [3:0] bus_sel,
-    output reg [1:0] alu_sel,
-    output reg Address 
+    output reg [4:0] alu_sel
 ); 
 
 // State encoding
@@ -80,17 +79,14 @@ localparam reg [15:0]
            S_CLR_4		= 16'd100,
            S_CLR_5		= 16'd100,
 
-           // ACT sequence
-           S_ACT_4		= 16'd110,
-           S_ACT_5		= 16'd110,
 
            // NORM sequence
            S_NORM_4		= 16'd120,
            S_NORM_5		= 16'd120,
 
-           // JMP sequence
-           S_JMP_4		= 16'd130,
-           S_JMP_5		= 16'd130,
+           // BUN sequence
+           S_BUN_4		= 16'd130,
+           S_BUN_5		= 16'd130,
 
            // JZ sequence
            S_JZ_4		= 16'd140,
@@ -212,7 +208,7 @@ localparam reg [7:0]
 // Kontrol Komutları  (Tip = 3'b010)
 // -----------------------------------------------------------------
 localparam reg [7:0]
-    BUN     = 8'b010_0000,  // Tip=010, AltOp=0000  (JMP)
+    BUN     = 8'b010_0000,  // Tip=010, AltOp=0000  (BUN)
     JZ      = 8'b010_0001,  // Tip=010, AltOp=0001
     JN      = 8'b010_0010,  // Tip=010, AltOp=0010
     JZINT   = 8'b010_0011,  // Tip=010, AltOp=0011
@@ -294,7 +290,7 @@ localparam reg [7:0]
                     next = S_NORM_4;
                 end  
                 if (IR == BUN) begin
-                    next = S_JMP_4;
+                    next = S_BUN_4;
                 end  
                 if (IR == JZ) begin
                     next = S_JZ_4;
@@ -479,12 +475,7 @@ localparam reg [7:0]
                 next = S_FETCH_0;
             end
             //------------------------------------------11
-            S_ACT_4: begin
-                next = S_ACT_5;
-            end
-            S_ACT_5: begin
-                next = S_FETCH_0;
-            end
+
             //------------------------------------------12
             S_NORM_4: begin
                 next = S_NORM_5;
@@ -493,10 +484,10 @@ localparam reg [7:0]
                 next = S_FETCH_0;
             end
             //------------------------------------------13
-            S_JMP_4: begin
-                next = S_JMP_5;
+            S_BUN_4: begin
+                next = S_BUN_5;
             end
-            S_JMP_5: begin
+            S_BUN_5: begin
                 next = S_FETCH_0;
             end
             //------------------------------------------14
@@ -712,6 +703,11 @@ localparam reg [7:0]
         endcase
     end
 
+    localparam IR_SEL = 4'b1110;  // bus_sel == 1110 → IR
+    localparam [3:0] 
+        ALU_ADD = 4'b0000,
+        ALU_SUB = 4'b0001;
+        
     //output logic
     always @(state)
     begin
@@ -720,8 +716,8 @@ localparam reg [7:0]
         PC_Load=1'b0;
         AC_Load=1'b0;
         DR_Load=1'b0;
-        bus_sel=1'b0;
-        alu_sel=2'b00;
+        bus_sel=4'b0000;
+        alu_sel=4'b0000;
         write_en=1'b0;
         PC_Inc=1'b0;
         DR_Inc=1'b0;
@@ -747,22 +743,273 @@ localparam reg [7:0]
             end
             
             // DURUMLARIN KODLARI
-            
-            
-            
-            // DURUMLARIN KODLARI SONU
-            default: begin
-                IR_Load=1'b0;
-                AR_Load=1'b0;
-                PC_Load=1'b0;
-                bus_sel=1'b0;
-                alu_sel=2'b00;
-                write_en=1'b0;
-                AC_Load=1'b0;
-                AC_Inc=1'b0;
-                PC_Inc=1'b0;
+            // -------LDA----------
+            S_LDA_4: begin
+                // AR ← IR[15:0]
+                bus_sel = IR_SEL;  // IR → bus
+                AR_Load = 1'b1;
             end
-        endcase
-    end    
-    
-endmodule
+
+            S_LDA_5: begin
+                // DR ← M[AR]
+                bus_sel = 4'b0100; // from_memory → bus
+                DR_Load = 1'b1;
+            end
+
+            S_LDA_6: begin
+                // AC ← DR
+                bus_sel = 4'b0000; // DR → bus
+                AC_Load = 1'b1;
+            end
+
+            S_LDA_7: begin
+                // NOP / tamamlandı (FETCH döngüsü tekrar başlatılacak)
+            end
+            
+            // STA komut adımları
+            S_STA_4: begin
+                // AR ← IR[15:0]
+                bus_sel  = IR_SEL;   // IR → bus
+                AR_Load  = 1'b1;
+            end
+            
+            S_STA_5: begin
+                // DR ← AC
+                bus_sel  = 4'b0001;  // AC → bus
+                DR_Load  = 1'b1;
+            end
+            
+            S_STA_6: begin
+                // M[AR] ← DR
+                bus_sel   = 4'b0000; // DR → bus
+                write_en  = 1'b1;    // memory write
+            end
+            
+            S_STA_7: begin
+                // komut tamamlandı - FETCH döngüsüne dönülecek
+            end
+            
+            // LDG komut adımları
+            S_LDG_4: begin
+                // AR ← IR[15:0]
+                bus_sel = IR_SEL;   // IR → bus
+                AR_Load = 1'b1;
+            end
+            
+            S_LDG_5: begin
+                // DR ← M[AR] (IMAGE bölgesinden okuma)
+                bus_sel = 4'b0100;  // from_memory → bus
+                DR_Load = 1'b1;
+            end
+            
+            S_LDG_6: begin
+                // AC ← DR
+                bus_sel = 4'b0000;  // DR → bus
+                AC_Load = 1'b1;
+            end
+            
+            S_LDG_7: begin
+                // komut tamamlandı - FETCH döngüsüne dönülecek
+            end
+            
+            // LDK komut adımları
+            S_LDK_4: begin
+                // AR ← IR[15:0]
+                bus_sel  = IR_SEL;   // IR → bus
+                AR_Load  = 1'b1;
+            end
+            
+            S_LDK_5: begin
+                // DR ← M[AR] (KERNEL bölgesinden okuma)
+                bus_sel  = 4'b0100;  // from_memory → bus
+                DR_Load  = 1'b1;
+            end
+            
+            S_LDK_6: begin
+                // AC ← DR
+                bus_sel  = 4'b0000;  // DR → bus
+                AC_Load  = 1'b1;
+            end
+            
+            S_LDK_7: begin
+                // komut tamamlandı - FETCH döngüsüne dönülecek
+            end
+            
+            // LDO komut adımları
+            S_LDO_4: begin
+                // AR ← IR[15:0]
+                bus_sel  = IR_SEL;   // IR → bus
+                AR_Load  = 1'b1;
+            end
+            
+            S_LDO_5: begin
+                // DR ← M[AR] (OUTPUT bölgesinden okuma)
+                bus_sel  = 4'b0100;  // from_memory → bus
+                DR_Load  = 1'b1;
+            end
+            
+            S_LDO_6: begin
+                // AC ← DR
+                bus_sel  = 4'b0000;  // DR → bus
+                AC_Load  = 1'b1;
+            end
+            
+            S_LDO_7: begin
+                // komut tamamlandı - FETCH döngüsüne dönülecek
+            end
+            
+             // STO komut adımları
+            S_STO_4: begin
+                // AR ← IR[15:0]
+                bus_sel  = IR_SEL;   // IR → bus
+                AR_Load  = 1'b1;
+            end
+            
+            S_STO_5: begin
+                // DR ← AC
+                bus_sel  = 4'b0001;  // AC → bus
+                DR_Load  = 1'b1;
+            end
+            
+            S_STO_6: begin
+                // M[AR] ← DR (OUTPUT bölgesine yazma)
+                bus_sel    = 4'b0000; // DR → bus
+                write_en   = 1'b1;    // memory write
+            end
+            
+            S_STO_7: begin
+                // komut tamamlandı - FETCH döngüsüne dönülecek
+            end
+            
+            // ADD komut adımları
+            S_ADD_4: begin
+                // AR ← IR[15:0]
+                bus_sel   = IR_SEL;   // IR → bus
+                AR_Load   = 1'b1;
+            end
+
+            S_ADD_5: begin
+                // DR ← M[AR]
+                bus_sel   = 4'b0100;  // from_memory → bus
+                DR_Load   = 1'b1;
+            end
+
+            S_ADD_6: begin
+                // TR ← DR
+                bus_sel   = 4'b0000;  // DR → bus
+                TR_Load   = 1'b1;
+            end
+
+            S_ADD_7: begin
+                // AC ← AC + TR (ALU toplama)
+                alu_sel   = ALU_ADD;  // localparam ALU_ADD = e.g. 2'b00
+                AC_Load   = 1'b1;     // ALU sonucu AC'ye yüklenecek
+            end
+
+            S_ADD_8: begin
+                // komut tamamlandı - FETCH döngüsüne dönülecek
+            end
+               
+             // SUB komut adımları
+            S_SUB_4: begin
+                // AR ← IR[15:0]
+                bus_sel  = IR_SEL;   // IR → bus
+                AR_Load  = 1'b1;
+            end
+            
+            S_SUB_5: begin
+                // DR ← M[AR]
+                bus_sel  = 4'b0100;  // from_memory → bus
+                DR_Load  = 1'b1;
+            end
+            
+            S_SUB_6: begin
+                // TR ← DR
+                bus_sel  = 4'b0000;  // DR → bus
+                TR_Load  = 1'b1;
+            end
+            
+            S_SUB_7: begin
+                // AC ← AC - TR (ALU çıkarma)
+                alu_sel  = ALU_SUB;  // localparam ALU_SUB = 4'b0001
+                AC_Load  = 1'b1;
+            end
+            
+            S_SUB_8: begin
+                // komut tamamlandı - FETCH döngüsüne dönülecek
+            end
+            
+              // MUL komut adımları
+              S_MUL_4: begin
+                  // AR ← IR[15:0]
+                  bus_sel  = IR_SEL;   // IR → bus
+                  AR_Load  = 1'b1;
+              end
+
+              S_MUL_5: begin
+                  // DR ← M[AR]
+                  bus_sel  = 4'b0100;  // from_memory → bus
+                  DR_Load  = 1'b1;
+              end
+
+              S_MUL_6: begin
+                  // TR ← DR
+                  bus_sel  = 4'b0000;  // DR → bus
+                  TR_Load  = 1'b1;
+              end
+
+              S_MUL_7: begin
+                  // AC ← AC × TR (ALU çarpma)
+                  alu_sel  = ALU_MUL;  // localparam ALU_MUL = 4'b0010
+                  AC_Load  = 1'b1;     // ALU sonucu AC'ye yüklenecek
+              end
+
+              S_MUL_8: begin
+                  // komut tamamlandı - FETCH döngüsüne dönülecek
+              end
+              
+              // CLR komut adımları
+              S_CLR_4: begin
+                  // AC ← 0
+                  AC_Load = 1'b1;
+              end
+              
+              S_CLR_5: begin
+                  // komut tamamlandı - FETCH döngüsüne dönülecek
+              end
+              
+              // NORM komut adımları
+              S_NORM_4: begin
+                  // AC ← AC >> 4 (mantıksal sağ kaydırma)
+                  alu_sel  = ALU_SHR4;   // localparam ALU_SHR4 = e.g. 4'b0111
+                  AC_Load  = 1'b1;       // ALU sonucunu AC'ye yükle
+              end
+              
+              S_NORM_5: begin
+                  // komut tamamlandı - FETCH döngüsüne dönülecek
+              end
+              
+              // BUN (unconditional jump) komut adımları
+            S_BUN_4: begin
+                // PC ← IR[15:0]
+                bus_sel  = IR_SEL;   // IR → bus
+                PC_Load  = 1'b1;
+            end
+            
+            S_BUN_5: begin
+                // komut tamamlandı - bir sonraki döngüde FETCH'e dönülecek
+            end
+            
+            // JZ (Jump If Zero) komut adımları
+            S_JZ_4: begin
+                // if (AC == 0) PC ← IR[15..0]
+                if (AC == 16'd0) begin
+                    bus_sel  = IR_SEL;   // IR → bus
+                    PC_Load  = 1'b1;
+                end
+                // else: PC zaten bir önceki FETCH_1 adımında increment edildi
+            end
+            
+            S_JZ_5: begin
+                // komut tamamlandı - FETCH döngüsüne dönülecek
+            end
