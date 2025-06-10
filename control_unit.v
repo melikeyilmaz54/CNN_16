@@ -6,11 +6,11 @@ module control_unit(
     input [15:0] IR,
     input mem_ready,
     output reg [8:0] state,       // 9-bit state
-    output reg AR_Load, DR_Load, AC_Load, IR_Load, PC_Inc, PC_Load, Mem_Write,
-    output reg [1:0] Bus_Sel,
-    output reg [1:0] ALU_sel,
-    output reg Address
-);
+    output reg AR_Load, DR_Load, AC_Load, IR_Load, PC_Inc, PC_Load, DR_Inc, write_en,
+    output reg [3:0] bus_sel,
+    output reg [1:0] alu_sel,
+    output reg Address 
+); 
 
 // State encoding
 localparam reg [15:0]
@@ -184,7 +184,7 @@ localparam reg [15:0]
            S_IN_4		= 16'd290,
            S_IN_5		= 16'd291,
            S_IN_6		= 16'd292,
-           S_IN_7		= 16'd293,
+           S_IN_7		= 16'd293;
 
     //komutlar------ opcode IR[15:12]----------
     // -----------------------------------------------------------------
@@ -236,14 +236,14 @@ localparam reg [7:0]
 
 	
 	// State registers
-	reg [8:0] state, next;,
+	reg [8:0] state, next;
 
-    always @(posedge clk or posedge rst) begin
-        if (rst)    state <= S_FETCH_0;
+    always @(posedge clk or posedge reset) begin
+        if (reset)    state <= S_FETCH_0;
         else        state <= next;
     end
 
-    always @(state, IR_Value)
+    always @(state, IR)
     begin
         case(state)
             S_FETCH_0: begin
@@ -259,90 +259,89 @@ localparam reg [7:0]
             end
             
             S_DECODE_3: begin
-                if(opcode == LDA) begin
+                if(IR == LDA) begin
                     next = S_LDA_4;
                 end
-                if (opcode == STA) begin
+                if (IR == STA) begin
                     next = S_STA_4;
                 end   
-                if (opcode == LDG) begin
+                if (IR == LDG) begin
                     next = S_LDG_4;
                 end     
-                if (opcode == LDK) begin
+                if (IR == LDK) begin
                     next = S_LDK_4;
                 end     
-                if (opcode == LDO) begin
+                if (IR == LDO) begin
                     next = S_LDO_4;
                 end    
-                if (opcode == STO) begin
+                if (IR == STO) begin
                     next = S_STO_4;
                 end   
-                if (opcode == ADD) begin
+                if (IR == ADD) begin
                     next = S_ADD_4;
                 end   
-                if (opcode == SUB) begin
+                if (IR == SUB) begin
                     next = S_SUB_4;
                 end    
-                if (opcode == MUL) begin
+                if (IR == MUL) begin
                     next = S_MUL_4;
                 end  
-                if (opcode == CLR) begin
+                if (IR == CLR) begin
                     next = S_CLR_4;
                 end   
-                if (opcode == ACT) begin
-                    next = S_ACT_4;
-                end  
-                if (opcode == NORM) begin
+
+                if (IR == NORM) begin
                     next = S_NORM_4;
                 end  
-                if (opcode == JMP) begin
+                if (IR == BUN) begin
                     next = S_JMP_4;
                 end  
-                if (opcode == JZ) begin
+                if (IR == JZ) begin
                     next = S_JZ_4;
                 end
-                if (opcode == JN) begin
+                if (IR == JN) begin
                     next = S_JN_4;
                 end  
-                if (opcode == JZINT) begin
+                if (IR == JZINT) begin
                     next = S_JZINT_4;
                 end  
-                if (opcode == CLRINT) begin
+                if (IR == CLRINT) begin
                     next = S_CLRINT_4;
                 end  
-                if (opcode == INC) begin
+                if (IR == INC) begin
                     next = S_INC_4;
                 end  
-                if (opcode == DEC) begin
+                if (IR == DEC) begin
                     next = S_DEC_4;
                 end  
-                if (opcode == CMP) begin
+                if (IR == CMP) begin
                     next = S_CMP_4;
                 end   
-                if (opcode == CONV) begin
+                if (IR == CONV) begin
                     next = S_CONV_4;
                 end  
-                if (opcode == FPLOAD) begin
+                if (IR == FPLOAD) begin
                     next = S_FPLOAD_4;
                 end    
-                if (opcode == FPMUL) begin
+                if (IR == FPMUL) begin
                     next = S_FPMUL_4;
                 end  
-                if (opcode == RELU) begin
+                if (IR == RELU) begin
                     next = S_RELU_4;
                 end   
-                if (opcode == OUT) begin
+                if (IR == OUT) begin
                     next = S_OUT_4;
                 end  
-                if (opcode == INT) begin
+                if (IR == INT) begin
                     next = S_INT_4;
                 end  
-                if (opcode == IN) begin
+                if (IR == IN) begin
                     next = S_IN_4;
                 end
-            end
+               end
+            endcase
             
-            case (opcode)
+            case(IR)
             //------------------------------------1
             S_LDA_4: begin
                 next = S_LDA_5;
@@ -605,7 +604,7 @@ localparam reg [7:0]
                 next = S_CONV_12;
             end
             S_CONV_12: begin
-                next = S_CON_13;
+                next = S_CONV_13;
             end
             S_CONV_13: begin
                 next = S_CONV_14;
@@ -678,18 +677,21 @@ localparam reg [7:0]
             //------------------------------------------24
             S_RELU_4: begin
                 next = S_RELU_5;
+            end
             S_RELU_5: begin
                 next = S_FETCH_0;
             end
             //------------------------------------------25
             S_OUT_4: begin
                 next = S_OUT_5;
+            end
             S_OUT_5: begin
                 next = S_FETCH_0;
             end
             //------------------------------------------26
             S_INT_4: begin
                 next = S_INT_5;
+            end
             S_INT_5: begin
                 next = S_FETCH_0;
             end
@@ -711,7 +713,7 @@ localparam reg [7:0]
     end
 
     //output logic
-    always @(current_state)
+    always @(state)
     begin
         IR_Load=1'b0;
         AR_Load=1'b0;
@@ -724,7 +726,7 @@ localparam reg [7:0]
         PC_Inc=1'b0;
         DR_Inc=1'b0;
         
-        case(current_state)
+        case(state)
             S_FETCH_0: begin
                 bus_sel=2'b11;
                 AR_Load=1'b1;
@@ -743,108 +745,12 @@ localparam reg [7:0]
                 //OPCODE yukarýdaki always bloðunda çözüldü ve 
                 //sonraki durumu geçildi
             end
-            //------------------------------------
-            S_LDA_IMM_4: begin
-                //OPERAND oku
-                bus_sel=2'b11;
-                AR_Load=1'b1;
-            end
             
-            S_LDA_IMM_5: begin
-                PC_Inc=1'b1;
-            end
+            // DURUMLARIN KODLARI
             
-            S_LDA_IMM_6: begin
-                bus_sel=2'b10; //bus<<from_memory
-                DR_Load=1;
-            end
             
-            S_LDA_IMM_7: begin
-                AC_Load=1;
-                alu_sel=3'b111;
-            end
-            //---------------------------------------
-            S_ADD_IMM_4: begin
-                //OPERAND oku
-                bus_sel=2'b11;
-                AR_Load=1'b1;
-            end
-            S_ADD_IMM_5: begin
-                PC_Inc=1'b1;
-            end
-            S_ADD_IMM_6: begin
-                DR_Load=1;
-            end
-            S_ADD_IMM_7: begin
-                alu_sel=3'b000;
-            end
-            //--------------------------------------------
-            S_LDA_ADR_4: begin
-                //OPERAND oku
-                bus_sel=2'b11;
-                AR_Load=1'b1;
-            end
-            S_LDA_ADR_5: begin
-                PC_Inc=1'b1;
-            end
-            S_LDA_ADR_6: begin
-                AR_Load=1;
-            end
-            S_LDA_ADR_7: begin
-                //boþ
-            end
-            S_LDA_ADR_8: begin
-                DR_Load=1;
-            end
-            S_LDA_ADR_9: begin
-                AC_Load=1;
-            end
-            //----------------------------------------------
-            S_STA_ADR_4: begin
-                //OPERAND oku
-                bus_sel=2'b11;
-                AR_Load=1'b1;
-            end
-            S_STA_ADR_5: begin
-                PC_Inc=1'b1;
-            end
-            S_STA_ADR_6: begin
-                bus_sel=2'b10;
-                AR_Load=1'b1;
-            end
-            S_STA_ADR_7: begin
-                bus_sel=2'b01;
-                write_en=1'b1;
-            end
-            //---------------------------------------------
-            S_ADD_ADR_4: begin
-                //OPERAND oku
-                bus_sel=2'b11;
-                AR_Load=1'b1;
-            end
-            S_ADD_ADR_5: begin
-                PC_Inc=1'b1;
-            end
-            S_ADD_ADR_6: begin
-                bus_sel=2'b10; //bus=from_memory
-                AR_Load=1'b1;
-            end
-            S_ADD_ADR_7: begin
-                //boþ
-            end
-            S_ADD_ADR_8: begin
-                bus_sel=2'b10; //bus=from_memory
-                DR_Load=1'b1;
-            end
-            S_ADD_ADR_9: begin
-                AC_Load=1;
-                alu_sel=3'b000;
-            end
-            //------------------------------------------
-            S_INC_A_4: begin
-                AC_Inc=1'b1;
-            end
             
+            // DURUMLARIN KODLARI SONU
             default: begin
                 IR_Load=1'b0;
                 AR_Load=1'b0;
