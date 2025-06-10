@@ -8,7 +8,7 @@ module control_unit(
     output reg [8:0] state,       // 9-bit state
     output reg AR_Load, DR_Load, AC_Load, TR_Load,  IR_Load,  PC_Load, write_en,
     output reg AC_Inc, PC_Inc, DR_Inc,
-    output reg [3:0] bus_sel,
+    output reg [4:0] bus_sel,
     output reg [4:0] alu_sel,
     output reg Address 
 ); 
@@ -705,7 +705,7 @@ localparam reg [7:0]
         endcase
     end
 
-    localparam IR_SEL = 4'b1110;  // bus_sel == 1110 → IR
+    localparam IR_SEL = 5'b01110;  // bus_sel == 01110 → IR
     localparam [3:0] 
         ALU_ADD = 4'b0000,
         ALU_SUB = 4'b0001;
@@ -718,7 +718,7 @@ localparam reg [7:0]
         PC_Load=1'b0;
         AC_Load=1'b0;
         DR_Load=1'b0;
-        bus_sel=4'b0000;
+        bus_sel=5'b00000;
         alu_sel=4'b0000;
         write_en=1'b0;
         PC_Inc=1'b0;
