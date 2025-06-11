@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 // control_unit.v
 // FSM-based control unit with 9-bit state encoding (decimal steps of 10)
 module control_unit(
@@ -5,12 +6,15 @@ module control_unit(
     input reset,
     input [15:0] IR,
     input mem_ready,
-    output reg [8:0] state,       // 9-bit state
-    output reg AR_Load, DR_Load, AC_Load, TR_Load,  IR_Load,  PC_Load, write_en,
+    input zero, equal, neg,
+    output reg [8:0] state_o,       // 9-bit state
+    output reg AR_Load, DR_Load, AC_Load, TR_Load,  IR_Load,  PC_Load, IREG_Load, JREG_Load, write_en,
+    output reg OREG_Load, GREG_Load, KREG_Load, VREG_Load, XREG_Load, YREG_Load, OUTR_Load, INPR_Load,
+    output reg INTF, Zero_Check_En, compare_en, neg_check_en,
     output reg AC_Inc, PC_Inc, DR_Inc,
-    output reg [4:0] bus_sel,
-    output reg [4:0] alu_sel,
-    output reg Address 
+    output reg [15:0] compare_val,
+    output reg [4:0] bus_sel, 
+    output reg [4:0] alu_sel
 ); 
 
 // State encoding
@@ -169,6 +173,7 @@ localparam reg [15:0]
            // RELU sequence
            S_RELU_4		= 16'd260,
            S_RELU_5		= 16'd261,
+           S_RELU_6     = 16'd262,
 
            // OUT sequence
            S_OUT_4		= 16'd270,
@@ -672,6 +677,9 @@ localparam reg [7:0]
                 next = S_RELU_5;
             end
             S_RELU_5: begin
+                next = S_RELU_6;
+            end
+            S_RELU_6: begin
                 next = S_FETCH_0;
             end
             //------------------------------------------25
@@ -705,11 +713,41 @@ localparam reg [7:0]
         endcase
     end
 
-    localparam IR_SEL = 5'b01110;  // bus_sel == 01110 → IR
-    localparam ZERO_SELL = 5'd0;
-    localparam [3:0] 
-        ALU_ADD = 4'b0000,
-        ALU_SUB = 4'b0001;
+    reg [1:0] i = 2'b0, j = 2'b0;
+    // Bus seçim sabitleri
+    localparam [4:0]
+        DR_SEL        = 5'd0,
+        AC_SEL        = 5'd1,
+        TR_SEL        = 5'd2,
+        PC_SEL        = 5'd3,
+        FROM_MEM_SEL  = 5'd4,
+        XREG_SEL      = 5'd5,
+        YREG_SEL      = 5'd6,
+        VREG_SEL      = 5'd7,
+        KREG_SEL      = 5'd8,
+        GREG_SEL      = 5'd9,
+        OREG_SEL      = 5'd10,
+        INPR_SEL      = 5'd11,
+        IREG_SEL      = 5'd12,
+        JREG_SEL      = 5'd13,
+        IR_SEL        = 5'd14,
+        OUTR_SEL      = 5'd15,
+        INPUT_SEL     = 5'd16,
+        ZERO_SELL     = 5'd31;    // En son değer
+
+    // ALU operasyon kodları
+    localparam [3:0]
+        ALU_ADD          = 4'b0000,
+        ALU_SUB          = 4'b0001,
+        ALU_MUL          = 4'b0010,
+        ALU_ADD_CONST1   = 4'b0101,
+        ALU_SUB_CONST1   = 4'b0110,
+        ALU_SHR4         = 4'b0111,
+        ALU_MUL_CONST10  = 4'b1000,
+        ALU_MUL_CONST3   = 4'b1001,
+        ALU_FPMUL        = 4'b1010,
+        ALU_FP_NORMALIZE = 4'b1011,
+        ALU_MUL_CONST8   = 4'b1100;
         
     //output logic
     always @(state)
@@ -1005,17 +1043,17 @@ localparam reg [7:0]
             
             // JZ (Jump If Zero) komut adımları
             S_JZ_4: begin
-                // if (AC == 0) PC ← IR[15..0]
-                if (AC == 16'd0) begin
-                    bus_sel  = IR_SEL;   // IR → bus
-                    PC_Load  = 1'b1;
-                end
-                // else: PC zaten bir önceki FETCH_1 adımında increment edildi
+                bus_sel   = AC_SEL;    // AC → Bus
+                Zero_Check_En = 1'b1;  // Zero kontrol sinyalini aktif et
             end
             
             S_JZ_5: begin
-                // komut tamamlandı - FETCH döngüsüne dönülecek
-            end
+                if (zero == 1'b1) begin
+                    bus_sel = IR_SEL;  // IR → Bus
+                    PC_Load = 1'b1;    // PC ← IR (atlama yapılır)
+                end
+                // değilse PC zaten FETCH_1 adımında artmıştı
+            end 
             
             // JZINT (Jump If Interrupt Flag Set) komut adımları
             S_JZINT_4: begin
@@ -1132,66 +1170,87 @@ localparam reg [7:0]
                 // komut tamamlandı - FETCH döngüsüne dönülecek
             end
             
-            
             // CONV komutu kontrol adımları
-            
-            // Not: i, j, tmpX gibi sayaçlar ve ara değişkenler için register tanımları ve state geçişleri clock kontrollü blokta yapılmalıdır.
-            
             S_CONV_4: begin
-                bus_sel     = ZERO_SEL;
-                XREG_Load   = 1'b1;
-                YREG_Load   = 1'b1;
-                VREG_Load   = 1'b1;
+                bus_sel    = ZERO_SELL;
+                XREG_Load  = 1'b1;
+                YREG_Load  = 1'b1;
+                VREG_Load  = 1'b1;
             end
             
             S_CONV_5: begin
-                if (YREG == 16'd8)
-                    next_state = S_CONV_26;
+                bus_sel     = YREG_SEL;
+                compare_val = 16'd8;
+                compare_en  = 1'b1;
             end
             
             S_CONV_6: begin
-                if (XREG == 16'd8) begin
-                    bus_sel    = ZERO_SEL;
-                    XREG_Load  = 1'b1;
-                    alu_sel    = ALU_ADD_CONST1;
-                    YREG_Load  = 1'b1;
+                if (equal)
+                    next = S_CONV_26;
+                else begin
+                    bus_sel     = XREG_SEL;
+                    compare_val = 16'd8;
+                    compare_en  = 1'b1;
                 end
             end
             
             S_CONV_7: begin
-                bus_sel    = ZERO_SEL;
-                VREG_Load  = 1'b1;
+                if (equal) begin
+                    bus_sel    = ZERO_SELL;
+                    XREG_Load  = 1'b1;
+                    alu_sel    = ALU_ADD_CONST1;
+                    YREG_Load  = 1'b1;
+                    next       = S_CONV_5;
+                end else begin
+                    bus_sel    = ZERO_SELL;
+                    VREG_Load  = 1'b1;
+                end
             end
             
             S_CONV_8: begin
-                i = 16'd0;
+                bus_sel    = ZERO_SELL;
+                IREG_Load  = 1'b1;
             end
             
             S_CONV_9: begin
-                j = 16'd0;
+                bus_sel    = ZERO_SELL;
+                JREG_Load  = 1'b1;
             end
             
             S_CONV_10: begin
-                if (i == 16'd3)
-                    next_state = S_CONV_14;
+                bus_sel     = IREG_SEL;
+                compare_val = 16'd3;
+                compare_en  = 1'b1;
             end
             
             S_CONV_11: begin
-                if (j == 16'd3) begin
-                    alu_sel = ALU_ADD_CONST1;
-                    i = i + 1;
-                    j = 0;
-                    next_state = S_CONV_10;
+                if (equal)
+                    next = S_CONV_14;
+                else begin
+                    bus_sel     = JREG_SEL;
+                    compare_val = 16'd3;
+                    compare_en  = 1'b1;
                 end
             end
             
             S_CONV_12: begin
-                alu_sel = ALU_MUL_CONST10;
-                AR_Load = 1'b1;
+                if (equal) begin
+                    // i ← i + 1
+                    bus_sel   = IREG_SEL;
+                    alu_sel   = ALU_ADD_CONST1;
+                    IREG_Load = 1'b1;
+                    // j ← 0
+                    bus_sel   = ZERO_SELL;
+                    JREG_Load = 1'b1;
+                    next = S_CONV_10;
+                end else begin
+                    alu_sel = ALU_MUL_CONST10;
+                    AR_Load = 1'b1;
+                end
             end
             
             S_CONV_13: begin
-                bus_sel    = 4'b0100; // from_memory
+                bus_sel    = FROM_MEM_SEL;
                 GREG_Load  = 1'b1;
             end
             
@@ -1201,7 +1260,7 @@ localparam reg [7:0]
             end
             
             S_CONV_15: begin
-                bus_sel    = 4'b0100;
+                bus_sel    = FROM_MEM_SEL;
                 KREG_Load  = 1'b1;
             end
             
@@ -1222,23 +1281,26 @@ localparam reg [7:0]
             end
             
             S_CONV_19: begin
-                alu_sel = ALU_ADD_CONST1;
-                j = j + 1;
-                next_state = S_CONV_11;
+                // j ← j + 1
+                bus_sel   = JREG_SEL;
+                alu_sel   = ALU_ADD_CONST1;
+                JREG_Load = 1'b1;
+                next = S_CONV_11;
             end
             
             S_CONV_20: begin
-                bus_sel   = VREG_SEL;
-                AC_Load   = 1'b1;
-                if (AC[15]) begin
-                    bus_sel = ZERO_SEL;
-                    AC_Load = 1'b1;
-                end
+                bus_sel       = VREG_SEL;
+                AC_Load       = 1'b1;
+                neg_check_en  = 1'b1;
             end
             
             S_CONV_21: begin
-                alu_sel  = ALU_SHR4;
-                AC_Load  = 1'b1;
+                if (neg) begin
+                    bus_sel = ZERO_SELL;
+                    AC_Load = 1'b1;
+                end
+                alu_sel = ALU_SHR4;
+                AC_Load = 1'b1;
             end
             
             S_CONV_22: begin
@@ -1247,24 +1309,26 @@ localparam reg [7:0]
             end
             
             S_CONV_23: begin
-                bus_sel  = AC_SEL;
-                DR_Load  = 1'b1;
+                bus_sel = AC_SEL;
+                DR_Load = 1'b1;
             end
             
             S_CONV_24: begin
-                bus_sel   = ZERO_SELL; // DR
-                write_en  = 1'b1;
+                bus_sel  = DR_SEL;
+                write_en = 1'b1;
             end
             
             S_CONV_25: begin
-                alu_sel = ALU_ADD_CONST1;
+                bus_sel   = XREG_SEL;
+                alu_sel   = ALU_ADD_CONST1;
                 XREG_Load = 1'b1;
-                next_state = S_CONV_6;
+                next = S_CONV_6;
             end
             
             S_CONV_26: begin
-                next_state = S_FETCH_0;
+                next = S_FETCH_0;
             end
+            
             
             // FPLOAD komut adımları
             S_FPLOAD_4: begin
@@ -1319,15 +1383,20 @@ localparam reg [7:0]
             end
             
             // RELU (Rectified Linear Unit) komut adımları
+
             S_RELU_4: begin
-                // if (AC < 0) then AC ← 0
-                if (AC[15] == 1'b1) begin       // AC işaret biti 1 ise negatif
-                    bus_sel  = ZERO_SEL;       // bus ← 0
-                    AC_Load  = 1'b1;
-                end
+                bus_sel       = AC_SEL;        // AC → bus
+                neg_check_en  = 1'b1;          // işaret biti kontrolü (AC < 0 ?)
             end
             
             S_RELU_5: begin
+                if (neg) begin                 // AC negatifse
+                    bus_sel = ZERO_SELL;       // bus ← 0
+                    AC_Load = 1'b1;            // AC ← 0
+                end
+            end
+            
+            S_RELU_6: begin
                 // komut tamamlandı - FETCH döngüsüne dönülecek
             end
             
@@ -1389,4 +1458,3 @@ localparam reg [7:0]
                 end    
                 
             endmodule
-            
