@@ -81,18 +81,6 @@ module cnn_top_module (
 
         // Output register değerleri
         .IR_Value(IR_Value),
-        .AR_Value(AR_Value),
-        .TR_Value(TR_Value),
-        .DR_Value(DR_Value),
-        .AC_Value(AC_Value),
-        .PC_Value(PC_Value),
-        .XREG_Value(XREG_Value),
-        .YREG_Value(YREG_Value),
-        .VREG_Value(VREG_Value),
-        .KREG_Value(KREG_Value),
-        .GREG_Value(GREG_Value),
-        .OREG_Value(OREG_Value),
-        .bus_value(bus_value),
 
         // Karşılaştırma bayrakları
         .zero(zero),
