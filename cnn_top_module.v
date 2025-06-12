@@ -16,6 +16,8 @@ module cnn_top_module (
     
 );
 
+    assign testIR = IR_Value;
+    
     // Dahili sinyaller
     wire [15:0] IR_Value, AC_Value, TR_Value, DR_Value, bus_value;
     wire [11:0] PC_Value, AR_Value;
@@ -107,7 +109,6 @@ module cnn_top_module (
         .AC_Value(testAC), 
         .AR_Value(testAR),
         .PC_Value(testPC),
-        .IR_Value(testIR),
         .DR_Value(testDR),
         .TR_Value(testTR),
         .bus_value(testbus)
