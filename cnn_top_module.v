@@ -12,7 +12,8 @@ module cnn_top_module (
     output [15:0] testIR, testAC, testbus, testDR, testTR,
     output [7:0] testXREG,
     output [7:0] testYREG,
-    output [15:0] testVREG, testKREG, testGREG, testOREG
+    output [15:0] testVREG, testKREG, testGREG, testOREG,
+    output [8:0] testState
     
 );
 
@@ -35,7 +36,6 @@ module cnn_top_module (
     wire [4:0] bus_sel;
     wire [3:0] alu_sel;
     wire zero, equal, neg;
-    wire [8:0] state;
 
     // Datapath birimi
     cnn16_data_path datapath_inst (
@@ -116,7 +116,7 @@ module cnn_top_module (
         .neg(neg),
 
         // Debug state
-        .state_o(state),
+        .state_o(testState),
 
         // Register yükleme
         .AR_Load(AR_Load),
