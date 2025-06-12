@@ -245,7 +245,9 @@ localparam reg [7:0]
         if (reset)    state <= S_FETCH_0;
         else        state <= next;
     end
-
+    always @(*) begin
+        state_o = state;
+    end
     always @(state, IR)
     begin
         case(state)
@@ -713,7 +715,7 @@ localparam reg [7:0]
         endcase
     end
 
-    reg [1:0] i = 2'b0, j = 2'b0;
+    
     // Bus seçim sabitleri
     localparam [4:0]
         DR_SEL        = 5'd0,
@@ -1448,7 +1450,7 @@ localparam reg [7:0]
                             AR_Load=1'b0;
                             PC_Load=1'b0;
                             bus_sel=5'b0;
-                            alu_sel=2'b00;
+                            alu_sel=4'b0;
                             write_en=1'b0;
                             AC_Load=1'b0;
                             AC_Inc=1'b0;
@@ -1457,4 +1459,4 @@ localparam reg [7:0]
                     endcase
                 end    
                 
-            endmodule
+            endmodule 
