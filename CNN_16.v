@@ -10,6 +10,7 @@ module CNN_16(
      output [7:0] XREG_Value, YREG_Value,
      output [15:0] VREG_Value, KREG_Value, GREG_Value, OREG_Value,
      output [7:0] data_out, data_mem_in,
+     output [8:0] state_value,
      output we_out
 );
     wire we;
@@ -40,6 +41,7 @@ module CNN_16(
     assign GREG_Value = testGREG;
     assign OREG_Value = testOREG;
     assign bus_value =  testbus; 
+    assign state_value = testState;
     
     //dýþardan ram a program yüklemek için
     //sel_in=1 ise RAM a program yükleniyor
@@ -68,7 +70,8 @@ module CNN_16(
         .testVREG(testVREG),
         .testKREG(testKREG),
         .testGREG(testGREG),
-        .testOREG(testOREG)      
+        .testOREG(testOREG),
+        .testState(testState)
     );
 
     // RAM modülü
