@@ -86,6 +86,11 @@ module cnn16_data_path (
     assign DR_Value = DR;
     assign XREG_Value = XREG;
     assign YREG_Value = YREG;
+    assign VREG_Value = VREG;
+    assign KREG_Value = KREG;
+    assign GREG_Value = GREG;
+    assign OREG_Value = OREG;
+    
 
     // AC Register (16-bit)
     always @(posedge clk) begin
