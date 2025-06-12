@@ -6,7 +6,11 @@ module cnn_top_module (
     input mem_ready,                    // Bellekten okumanın tamamlandığını belirten sinyal
     input [15:0] from_memory,           // Bellekten gelen veri
     output [15:0] to_memory,            // Belleğe yazılacak veri
-    output [11:0] address               // Bellek adres yolu
+    output [11:0] address,               // Bellek adres yolu
+    output [11:0] testAR, testPC,
+    output [15:0] testIR, testAC, testbus, testDR,
+    output [7:0] testXREG,
+    output [7:0] testYREG
 );
 
     // Dahili sinyaller
@@ -79,7 +83,17 @@ module cnn_top_module (
         // Karşılaştırma bayrakları
         .zero(zero),
         .equal(equal),
-        .neg(neg)
+        .neg(neg),
+        
+        //test amaçlı
+        .XREG_Value(testXREG), 
+        .YREG_Value(testYREG),
+        .AC_Value(testAC), 
+        .AR_Value(testAR),
+        .PC_Value(testPC),
+        .IR_Value(testIR),
+        .DR_Value(testDR),
+        .bus_value(testbus)
     );
 
     // Kontrol birimi
