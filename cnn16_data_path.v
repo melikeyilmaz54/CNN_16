@@ -20,12 +20,17 @@ module cnn16_data_path (
     input [15:0] from_memory,  // 16-bit bellek veri yolu
     output [15:0] to_memory,
     output [11:0] address,      // 12-bit adres yolu
+    
     // Özel register çıkışları
+    output [11:0] AR_Value,
     output [15:0] IR_Value,     // 16-bit çıkışlar
-    output [15:0] AC_Value,
+    output [15:0] AC_Value,DR_Value,
     output [11:0] PC_Value,
     output [7:0] XREG_Value,
     output [7:0] YREG_Value,
+    
+    output [15:0] bus_value,
+    
     output reg zero, equal, neg
 );
 
@@ -65,11 +70,14 @@ module cnn16_data_path (
 
                  
     // Çıkış bağlantıları
+    assign bus = bus_value;
     assign to_memory = bus;
+    assign AR_Value = AR;
     assign address = AR;
     assign IR_Value = IR;
     assign AC_Value = AC;
     assign PC_Value = PC;
+    assign DR_Value = DR;
     assign XREG_Value = XREG;
     assign YREG_Value = YREG;
 
@@ -167,6 +175,7 @@ end
 
     // 16-bit ALU birimi
     alu_fpu_16bit alu_unit (
+        .clk(clk), 
         .op(alu_sel),
         .a(AC),
         .b(DR),
