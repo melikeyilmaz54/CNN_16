@@ -24,10 +24,16 @@ module cnn16_data_path (
     // Özel register çıkışları
     output [11:0] AR_Value,
     output [15:0] IR_Value,     // 16-bit çıkışlar
-    output [15:0] AC_Value,DR_Value,
+    output [15:0] TR_Value,
+    output [15:0] AC_Value,
+    output [15:0] DR_Value,
     output [11:0] PC_Value,
     output [7:0] XREG_Value,
     output [7:0] YREG_Value,
+    output [15:0] VREG_Value,
+    output [15:0] KREG_Value,
+    output [15:0] GREG_Value,
+    output [15:0] OREG_Value,
     
     output [15:0] bus_value,
     
