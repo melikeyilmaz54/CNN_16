@@ -229,14 +229,13 @@ localparam reg [7:0]
 // CNN ve Float Özel Komutları  (Tip = 3'b011)
 // -----------------------------------------------------------------
 localparam reg [7:0]
-    PAD    = 8'b011_0000,  // Tip=011, AltOp=0000
-    CONV   = 8'b011_0001,  // Tip=011, AltOp=0001
-    FPLOAD = 8'b011_0010,  // Tip=011, AltOp=0010
-    FPMUL  = 8'b011_0011,  // Tip=011, AltOp=0011
-    RELU   = 8'b011_0100,  // Tip=011, AltOp=0100
-    OUT    = 8'b011_0101,  // Tip=011, AltOp=0101
-    INT    = 8'b011_0110,  // Tip=011, AltOp=0110
-    IN     = 8'b011_0111;  // Tip=011, AltOp=0111
+    CONV   = 8'b011_0000,  // Tip=011, AltOp=0000
+    FPLOAD = 8'b011_0001,  // Tip=011, AltOp=0001
+    FPMUL  = 8'b011_0010,  // Tip=011, AltOp=0010
+    RELU   = 8'b011_0011,  // Tip=011, AltOp=0011
+    OUT    = 8'b011_0100,  // Tip=011, AltOp=0100
+    INT    = 8'b011_0101,  // Tip=011, AltOp=0101
+    IN     = 8'b011_0110;  // Tip=011, AltOp=0110
 
 	
 	// State registers
