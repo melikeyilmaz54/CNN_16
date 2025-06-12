@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module tb_lda_fsm(
+module CNN_16(
      input clkn, rstn, we_in, sel_in,
      input [15:0] data_in,
      input [11:0] adr_in,
