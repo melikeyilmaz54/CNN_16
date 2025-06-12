@@ -9,7 +9,7 @@ module cnn_top_module (
     output [15:0] to_memory,            // Belleğe yazılacak veri
     output [11:0] address,               // Bellek adres yolu
     output [11:0] testAR, testPC,
-    output [15:0] testIR, testAC, testbus, testDR,
+    output [15:0] testIR, testAC, testbus, testDR, testTR,
     output [7:0] testXREG,
     output [7:0] testYREG,
     output [15:0] testVREG, testKREG, testGREG, testOREG
