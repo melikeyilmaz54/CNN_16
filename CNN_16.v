@@ -1,7 +1,8 @@
 `timescale 1ns / 1ps
 
 module CNN_16(
-     input clkn, rstn, we_in, sel_in,
+     input clkn, rstn, we_in, 
+     input sel_in,
      input [15:0] data_in,
      input [11:0] adr_in,
      output [11:0] tbAR, tbPC,
@@ -40,6 +41,7 @@ module CNN_16(
     cnn_top_module uut (
         .clk(clkn),
         .rst(rstn),
+        .sel_in(sel_in),
         .mem_ready(sel_in),///SEL İN KONUSUNDA EKSİKLER VAR MEM READY NEYE BAĞLANICAK BİLMİYORUM
         .from_memory(from_mem),
         .to_memory(cpu_mem),
