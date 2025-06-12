@@ -11,13 +11,16 @@ module cnn_top_module (
     output [11:0] testAR, testPC,
     output [15:0] testIR, testAC, testbus, testDR,
     output [7:0] testXREG,
-    output [7:0] testYREG
+    output [7:0] testYREG,
+    output [15:0] testVREG, testKREG, testGREG, testOREG
+    
 );
 
     // Dahili sinyaller
-    wire [15:0] IR_Value, AC_Value;
-    wire [11:0] PC_Value;
+    wire [15:0] IR_Value, AC_Value, TR_Value, DR_Value;
+    wire [11:0] PC_Value, AR_Value;
     wire [7:0] XREG_Value, YREG_Value;
+    wire [15:0] VREG_Value, KREG_Value, GREG_Value, OREG_Value;
 
     // Kontrol sinyalleri
     wire AR_Load, DR_Load, AC_Load, TR_Load, IR_Load;
