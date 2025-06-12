@@ -17,7 +17,7 @@ module cnn_top_module (
 );
 
     // Dahili sinyaller
-    wire [15:0] IR_Value, AC_Value, TR_Value, DR_Value;
+    wire [15:0] IR_Value, AC_Value, TR_Value, DR_Value, bus_value;
     wire [11:0] PC_Value, AR_Value;
     wire [7:0] XREG_Value, YREG_Value;
     wire [15:0] VREG_Value, KREG_Value, GREG_Value, OREG_Value;
@@ -79,10 +79,18 @@ module cnn_top_module (
 
         // Output register değerleri
         .IR_Value(IR_Value),
+        .AR_Value(AR_Value),
+        .TR_Value(TR_Value),
+        .DR_Value(DR_Value),
         .AC_Value(AC_Value),
         .PC_Value(PC_Value),
         .XREG_Value(XREG_Value),
         .YREG_Value(YREG_Value),
+        .VREG_Value(VREG_Value),
+        .KREG_Value(KREG_Value),
+        .GREG_Value(GREG_Value),
+        .OREG_Value(OREG_Value),
+        .bus_value(bus_value),
 
         // Karşılaştırma bayrakları
         .zero(zero),
@@ -92,11 +100,16 @@ module cnn_top_module (
         //test amaçlı
         .XREG_Value(testXREG), 
         .YREG_Value(testYREG),
+        .VREG_Value(testVREG),
+        .KREG_Value(testKREG),
+        .GREG_Value(testGREG),
+        .OREG_Value(testOREG),
         .AC_Value(testAC), 
         .AR_Value(testAR),
         .PC_Value(testPC),
         .IR_Value(testIR),
         .DR_Value(testDR),
+        .TR_Value(testTR),
         .bus_value(testbus)
     );
 
