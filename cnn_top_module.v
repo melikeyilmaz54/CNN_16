@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module top_cnn_alu (
+module cnn_top_module (
     input clk,
     input rst,
     input mem_ready,                    // Bellekten okumanın tamamlandığını belirten sinyal
