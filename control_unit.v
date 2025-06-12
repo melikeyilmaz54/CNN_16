@@ -4,6 +4,7 @@
 module control_unit(
     input clk,
     input reset,
+    input sel_in,
     input [15:0] IR,
     input mem_ready,
     input zero, equal, neg,
@@ -242,9 +243,13 @@ localparam reg [7:0]
 	reg [8:0] state, next;
 
     always @(posedge clk or posedge reset) begin
-        if (reset)    state <= S_FETCH_0;
-        else        state <= next;
+    	if (reset)
+            state <= S_FETCH_0;
+   	else if (sel_in == 1'b0)
+       	    state <= next;
+    	// else durumu yok → state mevcut haliyle kalır
     end
+	
     always @(*) begin
         state_o = state;
     end
