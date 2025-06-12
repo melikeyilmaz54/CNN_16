@@ -3,6 +3,7 @@
 module cnn_top_module (
     input clk,
     input rst,
+    input sel_in,
     input mem_ready,                    // Bellekten okumanın tamamlandığını belirten sinyal
     input [15:0] from_memory,           // Bellekten gelen veri
     output [15:0] to_memory,            // Belleğe yazılacak veri
@@ -100,6 +101,7 @@ module cnn_top_module (
     control_unit ctrl_unit_inst (
         .clk(clk),
         .reset(rst),
+        .sel_in(sel_in),
         .IR(IR_Value),
         .mem_ready(mem_ready),
 
